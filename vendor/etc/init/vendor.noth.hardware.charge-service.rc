@@ -1,0 +1,5 @@
+service vendor.charge-default /vendor/bin/hw/vendor.noth.hardware.charge-service
+    interface aidl vendor.noth.hardware.charge.ICharge/default
+    class hal
+    user system
+    group system

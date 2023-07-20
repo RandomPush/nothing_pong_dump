@@ -1,0 +1,351 @@
+{
+ "interfaceVersion": {
+  "majorVersion": 1,
+  "minorVersion": 1,
+  "patchVersion": 0
+ },
+ "uuid": "95983c3e-0457-4eee-bf48-26fdd98d0fe9",
+ "archiveMetaData": {},
+ "description": "",
+ "configurations": [
+  {
+   "name": "MUSIC",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "OutputType": {
+     "stringValue": "speaker"
+    },
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "group_id": {
+     "stringValue": "0"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    }
+   },
+   "parameters": [
+    {
+     "id": {
+      "id": 5
+     },
+     "name": "Volume Control",
+     "description": "",
+     "min": 0,
+     "max": 16,
+     "default": 10,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "step",
+     "formatting": "%d"
+    },
+    {
+     "id": {
+      "id": 1
+     },
+     "name": "Rotation",
+     "description": "",
+     "min": 0,
+     "max": 3,
+     "default": 1,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "",
+     "formatting": "%d"
+    }
+   ],
+   "numInputs": 2,
+   "numOutputs": 2
+  },
+  {
+   "name": "MOVIE",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "OutputType": {
+     "stringValue": "speaker"
+    },
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    },
+    "group_id": {
+     "stringValue": "0"
+    }
+   },
+   "parameters": [
+    {
+     "id": {
+      "id": 5
+     },
+     "name": "Volume Control",
+     "description": "",
+     "min": 0,
+     "max": 16,
+     "default": 10,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "step",
+     "formatting": "%d"
+    },
+    {
+     "id": {
+      "id": 1
+     },
+     "name": "Rotation",
+     "description": "",
+     "min": 0,
+     "max": 3,
+     "default": 1,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "",
+     "formatting": "%d"
+    }
+   ],
+   "numInputs": 2,
+   "numOutputs": 2
+  },
+  {
+   "name": "GAME",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "OutputType": {
+     "stringValue": "speaker"
+    },
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    },
+    "group_id": {
+     "stringValue": "0"
+    }
+   },
+   "parameters": [
+    {
+     "id": {
+      "id": 5
+     },
+     "name": "Volume Control",
+     "description": "",
+     "min": 0,
+     "max": 16,
+     "default": 10,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "step",
+     "formatting": "%d"
+    },
+    {
+     "id": {
+      "id": 1
+     },
+     "name": "Rotation",
+     "description": "",
+     "min": 0,
+     "max": 3,
+     "default": 1,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "",
+     "formatting": "%d"
+    }
+   ],
+   "numInputs": 2,
+   "numOutputs": 2
+  },
+  {
+   "name": "SPEECH",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "OutputType": {
+     "stringValue": "speaker"
+    },
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    },
+    "group_id": {
+     "stringValue": "0"
+    }
+   },
+   "parameters": [
+    {
+     "id": {
+      "id": 5
+     },
+     "name": "Volume Control",
+     "description": "",
+     "min": 0,
+     "max": 16,
+     "default": 10,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "step",
+     "formatting": "%d"
+    },
+    {
+     "id": {
+      "id": 1
+     },
+     "name": "Rotation",
+     "description": "",
+     "min": 0,
+     "max": 3,
+     "default": 1,
+     "stepSize": 1,
+     "type": "PARAM_TYPE_LINEAR",
+     "enumValues": [],
+     "unit": "",
+     "formatting": "%d"
+    }
+   ],
+   "numInputs": 2,
+   "numOutputs": 2
+  },
+  {
+   "name": "EXT_1",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "OutputType": {
+     "stringValue": "headset"
+    },
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    },
+    "group_id": {
+     "stringValue": "1"
+    }
+   },
+   "parameters": [],
+   "numInputs": 2,
+   "numOutputs": 2
+  },
+  {
+   "name": "EXT_2",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "OutputType": {
+     "stringValue": "headset"
+    },
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "group_id": {
+     "stringValue": "1"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    }
+   },
+   "parameters": [],
+   "numInputs": 2,
+   "numOutputs": 2
+  },
+  {
+   "name": "EXT_3",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "group_id": {
+     "stringValue": "1"
+    },
+    "OutputType": {
+     "stringValue": "headset"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    }
+   },
+   "parameters": [],
+   "numInputs": 2,
+   "numOutputs": 2
+  },
+  {
+   "name": "EXT_4",
+   "rtCoreVersion": {
+    "majorVersion": 2,
+    "minorVersion": 0,
+    "patchVersion": 1
+   },
+   "signalChainMetaData": {
+    "bypass_gain_db": {
+     "stringValue": "0"
+    },
+    "group_id": {
+     "stringValue": "1"
+    },
+    "StreamType": {
+     "stringValue": "normal"
+    },
+    "OutputType": {
+     "stringValue": "headset"
+    }
+   },
+   "parameters": [],
+   "numInputs": 2,
+   "numOutputs": 2
+  }
+ ],
+ "creator": "Flow 4.0.0",
+ "creatorVersion": {
+  "majorVersion": 4,
+  "minorVersion": 0,
+  "patchVersion": 0
+ },
+ "author": "thomas.boden@dirac.com",
+ "project": "Phone 2",
+ "manufacturer": "Nothing",
+ "processorLibraryVersion": {
+  "majorVersion": 5,
+  "minorVersion": 0,
+  "patchVersion": 0
+ },
+ "creationTime": "2023-05-12T07:58:35Z"
+}

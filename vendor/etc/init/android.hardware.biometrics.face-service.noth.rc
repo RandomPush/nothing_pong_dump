@@ -1,0 +1,5 @@
+service vendor.face-noth /vendor/bin/hw/android.hardware.biometrics.face-service.noth
+    class hal
+    user system
+    group camera system
+

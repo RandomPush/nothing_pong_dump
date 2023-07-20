@@ -1,0 +1,7 @@
+service vendor.sensor_extension-1-0 /vendor/bin/hw/vendor.noth.hardware.sensor.sensor_extension@1.0-service
+    interface vendor.noth.hardware.sensor.sensor_extension@1.0::ISensorExtension default
+    class hal
+    user system
+    group system wakelock uhid input context_hub
+    capabilities BLOCK_SUSPEND
+    rlimit rtprio 10 10

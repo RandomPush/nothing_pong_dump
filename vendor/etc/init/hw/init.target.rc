@@ -1,0 +1,472 @@
+
+# Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#     * Neither the name of The Linux Foundation nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+# BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Changes from Qualcomm Innovation Center are provided under the following
+# license:
+#
+# Copyright (c) 2021-2022 Qualcomm Innovation Center, Inc. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted (subject to the limitations in the
+# disclaimer below) provided that the following conditions are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+#     * Neither the name of Qualcomm Innovation Center, Inc. nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+# GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+# HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+import /vendor/etc/init/hw/init.qti.kernel.rc
+
+on early-init
+    write /proc/sys/kernel/printk_devkmsg ratelimited
+    export MEMTAG_OPTIONS off
+
+on init
+    wait /dev/block/platform/soc/${ro.boot.bootdevice}
+    symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
+    chown system system /sys/devices/platform/soc/1d84000.ufshc/auto_hibern8
+    chmod 0660 /sys/devices/platform/soc/1d84000.ufshc/auto_hibern8
+    start logd
+
+    # Property used for sku specific sysconfig and permissions
+    setprop ro.boot.product.hardware.sku ${ro.boot.hardware.sku}
+
+on early-fs
+    start vold
+
+on fs
+    start hwservicemanager
+    mount_all /vendor/etc/fstab.qcom --early
+    chown root system /mnt/vendor/persist
+    chmod 0771 /mnt/vendor/persist
+    restorecon_recursive /mnt/vendor/persist
+    mkdir /mnt/vendor/persist/data 0700 system system
+    # BSP Audio Zhang.liu 20221108 add for smartpa-cali, begin
+    chmod 666 /sys/bus/i2c/devices/2-0034/reg
+    chmod 666 /sys/bus/i2c/devices/2-0034/rw
+    chmod 666 /sys/bus/i2c/devices/2-0035/reg
+    chmod 666 /sys/bus/i2c/devices/2-0035/rw
+    # BSP Audio Zhang.liu 20221108 add for smartpa-cali, end
+    # enlarge brightness node ugo to rwrwrw for BrightnessTools apk - start
+    chmod 0666 /sys/devices/platform/soc/ae00000.qcom,mdss_mdp/backlight/panel0-backlight/brightness
+    # enlarge brightness node ugo to rwrwrw for BrightnessTools apk - end
+    # enlarge TP node ugo to rwrwrw for GTMTest apk - start
+    chmod 666 /dev/gtp_tools
+    # enlarge TP node ugo to rwrwrw for GTMTest apk - end
+
+on post-fs
+    # set RLIMIT_MEMLOCK to 64MB
+    setrlimit 8 67108864 67108864
+
+on late-fs
+    wait_for_prop hwservicemanager.ready true
+    #exec_start wait_for_keymaster
+    mount_all /vendor/etc/fstab.qcom --late
+
+on post-fs-data
+    restorecon_recursive /mnt/vendor/persist
+    mkdir /mnt/vendor/persist/camera 0777 cameraserver cameraserver
+    mkdir /vendor/data/tombstones 0771 system system
+    # Enable WLAN cold boot calibration
+    write /sys/kernel/cnss/fs_ready 1
+
+on post-fs-data
+    mkdir /data/vendor/camera 0775 camera camera
+    copy /mnt/vendor/persist/camera/bokeh_caldata_uw_persist.bin /data/vendor/camera/bokeh_caldata_uw_persist.bin
+    chmod 0444 /data/vendor/camera/bokeh_caldata_uw_persist.bin
+    chown cameraserver audio /data/vendor/camera/bokeh_caldata_uw_persist.bin
+    copy /mnt/vendor/persist/camera/ois_caldata_wide_persist.bin /data/vendor/camera/ois_caldata_wide_persist.bin
+    chmod 0444 /data/vendor/camera/ois_caldata_wide_persist.bin
+    chown cameraserver audio /data/vendor/camera/ois_caldata_wide_persist.bin
+
+on early-boot
+    start vendor.sensors
+    verity_update_state
+    chown system system /proc/hwid
+    chown system system /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/dev_color
+    chown system system /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/hwid
+    chown system system /mnt/vendor/persist/color
+
+on boot
+    write /dev/cpuset/audio-app/cpus 1-2
+    # Add a cpuset for the camera daemon
+    # We want all cores for camera
+    mkdir /dev/cpuset/camera-daemon
+    write /dev/cpuset/camera-daemon/cpus 0-7
+    write /dev/cpuset/camera-daemon/mems 0
+    chown cameraserver cameraserver /dev/cpuset/camera-daemon
+    chown cameraserver cameraserver /dev/cpuset/camera-daemon/tasks
+    chmod 0660 /dev/cpuset/camera-daemon/tasks
+    chown system /sys/devices/platform/soc/990000.i2c/i2c-0/0-0038/trusted_touch_enable
+    chmod 0660 /sys/devices/platform/soc/990000.i2c/i2c-0/0-0038/trusted_touch_enable
+    chown system /sys/devices/platform/soc/990000.spi/spi_master/spi0/spi0.0/trusted_touch_enable
+    chmod 0660 /sys/devices/platform/soc/990000.spi/spi_master/spi0/spi0.0/trusted_touch_enable
+    chown system /sys/devices/platform/soc/980000.i2c/i2c-0/0-0062/trusted_touch_enable
+    chmod 0660 /sys/devices/platform/soc/980000.i2c/i2c-0/0-0062/trusted_touch_enable
+    chown system /sys/devices/platform/soc/980000.i2c/i2c-0/0-0062/trusted_touch_event
+    chmod 0660 /sys/devices/platform/soc/980000.i2c/i2c-0/0-0062/trusted_touch_event
+    chown system /sys/devices/system/cpu/hyp_core_ctl/enable
+    chown system /sys/devices/system/cpu/hyp_core_ctl/hcc_min_freq
+    #USB controller configuration
+    setprop vendor.usb.controller a600000.dwc3
+    #add system group for led nodes
+    chown system system /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/all_white_brightness
+    chown system system /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/single_brightness
+    chown system system /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/frame_brightness
+    chown system system /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/operating_mode
+    chown system system /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/vip_notification
+    # du.junyu add for fingerrpint
+    chmod 660 /dev/goodix_fp
+    chown system system /dev/goodix_fp
+    chmod 660 /sys/panel_feature/hbm_mode
+    chown system system /sys/panel_feature/hbm_mode
+    #Hanel, add for LTPO feature
+    chmod 0660 /sys/panel_feature/skip_frame_mode
+    chown system system /sys/panel_feature/skip_frame_mode
+    # enlarge TP node ugo
+    chown system system /sys/devices/platform/goodix_ts.0/edge_mode
+    chmod 0660 /sys/devices/platform/goodix_ts.0/edge_mode
+    chown system system /sys/devices/platform/goodix_ts.0/game_mode
+    chmod 0660 /sys/devices/platform/goodix_ts.0/game_mode
+    chown system system /sys/devices/platform/goodix_ts.0/gesture/fod_en
+    chmod 0660 /sys/devices/platform/goodix_ts.0/gesture/fod_en
+    chown system system /sys/devices/platform/goodix_ts.0/gesture/single_en
+    chmod 0660 /sys/devices/platform/goodix_ts.0/gesture/single_en
+    chown system system /sys/devices/platform/goodix_ts.0/gesture/touch_data
+
+#add by Dylan for TFT-1534
+# {@
+    chmod 550 /proc/nt_meminfo/
+    chown system system /proc/nt_meminfo/
+    chmod 550 /proc/nt_meminfo/show_all_dma
+    chown system system /proc/nt_meminfo/show_all_dma
+    chmod 550 /proc/nt_meminfo/show_all_tasks
+    chown system system /proc/nt_meminfo/show_all_tasks
+    chmod 550 /proc/nt_meminfo/show_all_task_dma
+    chown system system /proc/nt_meminfo/show_all_task_dma
+# @}
+
+#add by Dylan for TFT-404
+# {@
+    chmod 0660 /sys/devices/platform/soc/c42d000.qcom,spmi/driver/c42d000.qcom,spmi/spmi-0/0-00/c42d000.qcom,spmi:qcom,pmk8350@0:pon_hlos@1300/force_key_warm_reset
+    chown system system /sys/devices/platform/soc/c42d000.qcom,spmi/driver/c42d000.qcom,spmi/spmi-0/0-00/c42d000.qcom,spmi:qcom,pmk8350@0:pon_hlos@1300/force_key_warm_reset
+# @}
+
+
+#add by Dylan for TFT-404
+# {@
+on property:persist.vendor.stability.force_key_warm_reset=1
+    write /sys/devices/platform/soc/c42d000.qcom,spmi/driver/c42d000.qcom,spmi/spmi-0/0-00/c42d000.qcom,spmi:qcom,pmk8350@0:pon_hlos@1300/force_key_warm_reset 1
+
+on property:persist.vendor.stability.force_key_warm_reset=0
+    write /sys/devices/platform/soc/c42d000.qcom,spmi/driver/c42d000.qcom,spmi/spmi-0/0-00/c42d000.qcom,spmi:qcom,pmk8350@0:pon_hlos@1300/force_key_warm_reset 0
+# @}
+
+#add by Dylan for TFT-456
+# @{
+on property:sys.system_server.start_count=1
+    write /sys/devices/virtual/NT/NT_reserve_kernel_log/boot_stage_systemserver 1
+# @}
+
+on property:vendor.display.lcd_density=560
+   setprop dalvik.vm.heapgrowthlimit 256m
+
+on property:vendor.display.lcd_density=640
+   setprop dalvik.vm.heapgrowthlimit 512m
+
+on init && property:ro.boot.mode=charger
+    wait_for_prop vendor.all.modules.ready 1
+    mount_all /vendor/etc/charger_fw_fstab.qti --early
+    wait /sys/kernel/boot_adsp/boot
+    write /sys/kernel/boot_adsp/boot 1
+
+on charger
+    start vendor.power_off_alarm
+    setprop sys.usb.controller a600000.dwc3
+    wait /sys/class/udc/${sys.usb.controller}
+    setprop sys.usb.configfs 1
+    write /sys/kernel/cnss/charger_mode 1
+#only use cpu0 in power off charge
+    write /sys/devices/system/cpu/cpu0/online 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor   powersave
+    write /sys/devices/system/cpu/cpu1/online 0
+    write /sys/devices/system/cpu/cpu2/online 0
+    write /sys/devices/system/cpu/cpu3/online 0
+    write /sys/devices/system/cpu/cpu4/online 0
+    write /sys/devices/system/cpu/cpu5/online 0
+    write /sys/devices/system/cpu/cpu6/online 0
+    write /sys/devices/system/cpu/cpu7/online 0
+##NT,start charge sevice
+    start vendor.charge-default-poweroff
+##Stop audiopd
+    stop vendor.audioadsprpcd_audiopd
+##Set ufs clkscale/auto_hib/clkgate back
+    write /sys/devices/platform/soc/1d84000.ufshc/clkscale_enable 1
+    write /sys/devices/platform/soc/1d84000.ufshc/auto_hibern8 5000
+    write /sys/devices/platform/soc/1d84000.ufshc/clkgate_enable 1
+#service vendor.lowi /vendor/bin/sscrpcd
+#   class core
+#   user system
+#   group system wakelock
+#   capabilities BLOCK_SUSPEND
+
+#pd-mapper
+service vendor.pd_mapper /vendor/bin/pd-mapper
+    class core
+    user system
+    group system
+
+##NT,start charge sevice
+service vendor.charge-default-poweroff /vendor/bin/hw/vendor.noth.hardware.charge-service
+     class core
+     group system
+     disabled
+#Peripheral manager
+service vendor.per_mgr /vendor/bin/pm-service
+    class core
+    user system
+    group system
+    ioprio rt 4
+
+service vendor.per_proxy /vendor/bin/pm-proxy
+    class core
+    user system
+    group system
+    disabled
+
+service vendor.mdm_helper /vendor/bin/mdm_helper
+    class core
+    group system wakelock
+    disabled
+
+service vendor.mdm_launcher /vendor/bin/sh /vendor/bin/init.mdm.sh
+    class core
+    oneshot
+
+on property:init.svc.vendor.per_mgr=running
+    start vendor.per_proxy
+
+on property:sys.shutdown.requested=*
+    write /sys/kernel/qcom_rproc/shutdown_in_progress 1
+    stop vendor.per_proxy
+
+on property:vold.decrypt=trigger_restart_framework
+   start vendor.cnss_diag
+
+service vendor.cnss_diag /system/vendor/bin/cnss_diag -q -f -t HELIUM
+   class main
+   user system
+   group system wifi inet sdcard_rw media_rw diag
+   oneshot
+
+on early-boot && property:persist.vendor.pcie.boot_option=*
+    write /sys/bus/platform/devices/1c00000.qcom,pcie/debug/boot_option ${persist.vendor.pcie.boot_option}
+    write /sys/bus/platform/devices/1c08000.qcom,pcie/debug/boot_option ${persist.vendor.pcie.boot_option}
+
+on property:sys.boot_completed=1
+    # add by Dylan for TFT-948 runtime fs tuning
+    write /sys/block/sda/queue/nr_requests 128
+    write /sys/block/sda/queue/iostats 1
+    write /sys/block/sda/queue/iosched/slice_idle 0
+    write /dev/sys/fs/by-name/userdata/data_io_flag 8
+    write /dev/sys/fs/by-name/userdata/node_io_flag 8
+    enable vendor.qvirtmgr
+    start  vendor.qvirtmgr
+    #start ft-diag
+    start ft_diag
+
+#nt add system group for charger node@{
+on property:sys.boot_completed=1
+    # add for disable/enable  wls charge
+    chown system system /sys/class/qcom-battery/wls_st38_en
+    # add for runin to write charger
+    chown system system /sys/class/qcom-battery/online_param
+    # add for runin to write charger
+    chown system system /sys/class/qcom-battery/usb_charger_en
+    chmod 0666 /sys/class/qcom-battery/usb_charger_en
+    # add for slowcharge need to write charger
+    chown system system /sys/class/qcom-battery/slowcharge_en
+    chmod 0666 /sys/class/qcom-battery/slowcharge_en
+    # add for slowcharge need to write charger
+    chown system system /sys/class/qcom-battery/charge_pump_enable
+    chmod 0666 /sys/class/qcom-battery/charge_pump_enable
+    chown system system /sys/class/qcom-battery/charge_power
+    chmod 0666 /sys/class/qcom-battery/charge_power
+    chown system system /sys/class/qcom-battery/typec_cc_orientation
+    chmod 0666 /sys/class/qcom-battery/typec_cc_orientation
+    # add for cit to write wireless_boost_en
+    chown system system /sys/class/qcom-battery/wireless_boost_en
+    chmod 0666 /sys/class/qcom-battery/wireless_boost_en
+    # add for cit to write wls_st38_reg
+    chown system system /sys/class/qcom-battery/wls_st38_reg
+    chmod 0666 /sys/class/qcom-battery/wls_st38_reg
+    # add for cit to write wls_st38_data
+    chown system system /sys/class/qcom-battery/wls_st38_data
+    chmod 0666 /sys/class/qcom-battery/wls_st38_data
+    # add for wireless charge to write scenario_fcc
+    chown system system /sys/class/qcom-battery/scenario_fcc
+    chmod 0666 /sys/class/qcom-battery/scenario_fcc
+    # add for check charge pump exist or no
+    chown system system /sys/class/qcom-battery/charge_exist_pump
+    chmod 0666 /sys/class/qcom-battery/charge_exist_pump
+    # zhangshaopei add for cit to write wls_cp_reg
+    chown system system /sys/class/qcom-battery/wls_cp_reg
+    chmod 0666 /sys/class/qcom-battery/wls_cp_reg
+    # nick add for cit Touch panel version && Tp apk
+    chown system system /sys/devices/platform/goodix_ts.0/driver_info
+    chown system system /sys/devices/platform/goodix_ts.0/pocket_mode
+    chmod 0444 /sys/devices/platform/goodix_ts.0/driver_info
+    chmod 0444 /sys/devices/platform/goodix_ts.0/fw_bin_info
+    chmod 0666 /sys/devices/platform/goodix_ts.0/pocket_mode
+    # nick add for light belt
+    chmod 0666 /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/all_brightness
+    chmod 0666 /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/factory_test
+    chmod 0666 /sys/devices/platform/soc/994000.i2c/i2c-0/0-003a/leds/led_strips/imax
+#@}
+
+# change by nick for charge @{
+on property:sys.boot_completed=1 && property:sys.runin.charging=false
+    write /sys/class/qcom-battery/usb_charger_en 0
+on property:sys.boot_completed=1 && property:sys.runin.charging=true
+    write /sys/class/qcom-battery/usb_charger_en 1
+# @}
+
+# zhangshaopei add for A+G sensor calibration @{
+service vendor.ssc_drva_test.accel /vendor/bin/ssc_drva_test -sensor=accel -factory_test=2 -duration=3
+   class core
+   user system
+   group system
+   disabled
+   oneshot
+
+service vendor.ssc_drva_test.gyro /vendor/bin/ssc_drva_test -sensor=gyro -factory_test=2 -duration=3
+   class core
+   user system
+   group system
+   disabled
+   oneshot
+
+on property:sys.ssc_drva_test.accel=start
+   start vendor.ssc_drva_test.accel
+
+on property:sys.ssc_drva_test.accel=stop
+   stop vendor.ssc_drva_test.accel
+
+
+on property:sys.ssc_drva_test.gyro=start
+   start vendor.ssc_drva_test.gyro
+
+on property:sys.ssc_drva_test.gyro=stop
+   stop vendor.ssc_drva_test.gyro
+# @}
+
+# xly add for sar sensor calibration @{
+service vendor.ssc_drva_test.sar /vendor/bin/ssc_drva_test -sensor=sar0 -factory_test=2 -duration=3
+   class core
+   user system
+   group system
+   disabled
+   oneshot
+
+on property:sys.ssc_drva_test.sar=start
+   start vendor.ssc_drva_test.sar
+
+on property:sys.ssc_drva_test.sar=stop
+   stop vendor.ssc_drva_test.sar
+
+# @}
+
+# zhangshaopei add for ship_mode @{
+on property:sys.ship_mode.enable=0
+   write /sys/class/qcom-battery/ship_mode_en 0
+
+on property:sys.ship_mode.enable=1
+   write /sys/class/qcom-battery/ship_mode_en 1
+# @}
+
+# zhangshaopei add for ft_diag @{
+service ft_diag /vendor/bin/ft_diag
+   class main
+   user root
+   group system
+# @}
+
+on property:sys.touch.game_mode.enable=*
+    write sys/devices/platform/goodix_ts.0/game_mode ${sys.touch.game_mode.enable}
+on property:sys.touch.edge_mode.enable=*
+    write sys/devices/platform/goodix_ts.0/edge_mode ${sys.touch.edge_mode.enable}
+on property:sys.touch.fod_en.enable=*
+    write sys/devices/platform/goodix_ts.0/gesture/fod_en ${sys.touch.fod_en.enable}
+on property:sys.touch.single_en.enable=*
+    write sys/devices/platform/goodix_ts.0/gesture/single_en ${sys.touch.single_en.enable}
+
+# lio.chen@CoreBSP, Optimizing OTG I/O efficiency
+on property:sys.otg.enable=1
+    write /sys/dev/block/${sys.otg.devid}/queue/read_ahead_kb 2048
+    write /sys/dev/block/${sys.otg.devid}/queue/iosched/fifo_batch 1
+    write /sys/dev/block/${sys.otg.devid}/queue/iosched/read_expire 100
+    write /sys/dev/block/${sys.otg.devid}/queue/iosched/writes_starved 10
+    write /sys/bus/platform/devices/1d84000.ufshc/clkscale_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/clkgate_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/auto_hibern8 0
+    write /dev/sys/block/by-name/userdata/queue/read_ahead_kb 2048
+
+on property:sys.otg.enable=0
+    write /sys/bus/platform/devices/1d84000.ufshc/clkscale_enable 1
+    write /sys/bus/platform/devices/1d84000.ufshc/clkgate_enable 1
+    write /sys/bus/platform/devices/1d84000.ufshc/auto_hibern8 5000
+    write /dev/sys/block/by-name/userdata/queue/read_ahead_kb 512
+
+#add by Kenneth for ALK-9597
+# @{
+on property:persist.sys.nmm.wm_scale_factor=*
+    write /proc/sys/vm/watermark_scale_factor ${persist.sys.nmm.wm_scale_factor}
+# @}
+
