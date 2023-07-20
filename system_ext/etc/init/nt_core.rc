@@ -1,0 +1,82 @@
+on post-fs
+    start nt_key_monitor
+    setprop sys.first.rescue_reboot 1
+    chmod 0770 /mnt/product/nt_log
+    chown root system /mnt/product/nt_log
+    restorecon --recursive /mnt/product/nt_log
+    restorecon --recursive /mnt/product/nt_log/recovery_log
+    chown root system /mnt/product/nt_log/recovery_log
+    chmod 0770 /mnt/product/nt_log/recovery_log
+    exec_background  - root system  -- /system_ext/bin/nt_core_log boot
+    exec_background  - root system  -- /system_ext/bin/nt_tzdbg_recorder
+
+on property:sys.system_server.start_count=2
+    setprop sys.system_server.crash 1
+
+on property:sys.system_server.crash=1 && property:sys.system_server.start_count=*
+    chmod 0770 /mnt/product/nt_log
+    chown root system /mnt/product/nt_log
+    restorecon --recursive /mnt/product/nt_log
+    exec_background  - root system  -- /system_ext/bin/nt_core_log crash
+
+on property:sys.attempting_reboot=true && property:sys.first.rescue_reboot=1
+    setprop sys.first.rescue_reboot 0
+    chmod 0770 /mnt/product/nt_log
+    chown root system /mnt/product/nt_log
+    restorecon --recursive /mnt/product/nt_log
+    exec_background  - root system  -- /system_ext/bin/nt_core_log rescue
+
+on property:sys.attempting_factory_reset=true && property:sys.first.rescue_reboot=1
+    setprop sys.first.rescue_reboot 0
+    chmod 0770 /mnt/product/nt_log
+    chown root system /mnt/product/nt_log
+    restorecon --recursive /mnt/product/nt_log
+    exec_background  - root system  -- /system_ext/bin/nt_core_log rescue
+
+on property:vendor.has_last_kmsg=1 && property:persist.sys.fuse=true && property:vendor.minidump.need_upload=0 && property:vendor.minidump.cp.status=1
+    setprop vendor.has_last_kmsg 0
+    mkdir /data/logkit/nt.core.log_panic root system
+    chmod 0770 /data/logkit/nt.core.log_panic
+    chown root system /data/logkit/nt.core.log_panic
+    mkdir /data/logkit/nt.core.log_panic/${vendor.last_kmsg_path} root system
+    chmod 0770 /data/logkit/nt.core.log_panic/${vendor.last_kmsg_path}
+    chown root system /data/logkit/nt.core.log_panic/${vendor.last_kmsg_path}
+    copy "/data/vendor/minidump/"${vendor.last_kmsg_path}"/last_kmsg.txt" "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/last_kmsg.txt"
+    chmod 0770 "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/last_kmsg.txt"
+    chown root system "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/last_kmsg.txt"
+    copy "/data/vendor/minidump/aop_dump.tar.gz" "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/aop_dump.tar.gz"
+    chmod 0770 "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/aop_dump.tar.gz"
+    chown root system "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/aop_dump.tar.gz"
+    restorecon --recursive /data/logkit/
+    exec_background  - root system  -- /system_ext/bin/nt_core_log panic "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/"
+
+on property:vendor.has_last_kmsg=1 && property:persist.sys.fuse=true && property:vendor.minidump.need_upload=1 && property:vendor.minidump.cp.status=1
+    setprop vendor.has_last_kmsg 0
+    mkdir /data/logkit/nt.core.log_panic root system
+    chmod 0770 /data/logkit/nt.core.log_panic
+    chown root system /data/logkit/nt.core.log_panic
+    mkdir /data/logkit/nt.core.log_panic/${vendor.last_kmsg_path} root system
+    chmod 0770 /data/logkit/nt.core.log_panic/${vendor.last_kmsg_path}
+    chown root system /data/logkit/nt.core.log_panic/${vendor.last_kmsg_path}
+    copy "/data/vendor/minidump/"${vendor.last_kmsg_path}"/last_kmsg.txt" "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/last_kmsg.txt"
+    chmod 0770 "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/last_kmsg.txt"
+    chown root system "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/last_kmsg.txt"
+    copy "/data/vendor/minidump/"${vendor.minidump.last_file} "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/"${vendor.minidump.last_file}
+    chmod 0770 "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/"${vendor.minidump.last_file}
+    chown root system "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/"${vendor.minidump.last_file}
+    restorecon --recursive /data/logkit/
+    exec_background  - root system  -- /system_ext/bin/nt_core_log panic "/data/logkit/nt.core.log_panic/"${vendor.last_kmsg_path}"/"
+
+service nt_key_monitor /system_ext/bin/nt_key_monitor
+    class main
+    user root
+    group root
+
+on property:ota.start=*
+    chmod 0770 /mnt/product/nt_log
+    chown root system /mnt/product/nt_log
+    restorecon --recursive /mnt/product/nt_log
+    exec_background  - root system  -- /system_ext/bin/nt_ota_notifier
+
+on property:vendor.display.enable_rc_support=*
+     setprop sys.display.enable_rc_support ${vendor.display.enable_rc_support}

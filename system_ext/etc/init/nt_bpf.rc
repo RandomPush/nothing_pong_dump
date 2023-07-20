@@ -1,0 +1,12 @@
+on property:sys.ntbpf.enable=1
+    start nt_bpf
+
+on property:sys.ntbpf.enable=0
+    stop nt_bpf
+
+service nt_bpf /system_ext/bin/nt_bpf
+    class main
+    user root
+    group root system
+    oneshot
+    disabled

@@ -1,0 +1,114 @@
+#add by nick for factoryflag check
+on fs
+    chmod 0444 /mnt/vendor/persist/factoryflagconfig
+
+#add for cit PSN FSN color
+on post-fs-data
+    mkdir /data/config 0777 root system
+    copy /mnt/vendor/persist/FSN.txt /data/config/FSN.txt
+    chmod 0444 /data/config/FSN.txt
+    chown system system /data/config/FSN.txt
+    copy /mnt/vendor/persist/PSN.txt /data/config/PSN.txt
+    chmod 0444 /data/config/PSN.txt
+    chown system system /data/config/PSN.txt
+    copy /mnt/vendor/persist/color /data/config/color
+    chmod 0666 /data/config/color
+    chown system system /data/config/color
+
+on property:sys.boot_completed=1 && property:sys.factoryflag_check_out=1
+    copy /mnt/vendor/persist/factoryflagconfig /data/config/factoryflagconfig
+    copy /mnt/vendor/persist/factoryflag1 /data/config/factoryflag1
+    copy /mnt/vendor/persist/factoryflag2 /data/config/factoryflag2
+    copy /mnt/vendor/persist/factoryflag3 /data/config/factoryflag3
+    copy /mnt/vendor/persist/factoryflag4 /data/config/factoryflag4
+    chmod 0444 /data/config/factoryflagconfig
+    chmod 0666 /data/config/factoryflag1
+    chmod 0666 /data/config/factoryflag2
+    chmod 0666 /data/config/factoryflag3
+    chmod 0666 /data/config/factoryflag4
+
+on property:sys.boot_completed=1 && property:sys.factoryflag_group_check_in=*
+    chmod 0444 /data/config/factoryflag${sys.factoryflag_group_check_in}
+    copy /data/config/factoryflag${sys.factoryflag_group_check_in} /mnt/vendor/persist/factoryflag${sys.factoryflag_group_check_in}
+
+# add by zyq for cit audio
+on property:persist.sys.cit.spk=*
+  setprop vendor.audio.hal.output.at.spk ${persist.sys.cit.spk}
+
+on property:persist.sys.cit.spk=""
+  setprop vendor.audio.hal.output.at.spk ""
+
+on property:persist.sys.cit.mic=*
+  setprop vendor.audio.hal.intput.at.mic ${persist.sys.cit.mic}
+
+on property:persist.sys.cit.mic=""
+  setprop vendor.audio.hal.intput.at.mic ""
+
+#add by bill for QrCode
+on property:sys.connect.adb.wiress=1
+    setprop service.adb.tcp.port 5555
+    stop adbd
+    start adbd
+
+on property:sys.connect.adb.wiress=0
+    setprop service.adb.tcp.port ""
+    stop adbd
+    start adbd
+    
+#add by xly for diagswitch copyfile
+on property:sys.boot_completed=1 && property:sys.diagswitch.sensor=1
+    chmod 0444 /mnt/vendor/persist/sensors/registry/registry/stk3bcx_0_platform.ps.fac_cal
+    chmod 0444 /mnt/vendor/persist/sensors/registry/registry/stk3bcx_0_platform.als.fac_cal
+    copy /mnt/vendor/persist/sensors/registry/registry/stk3bcx_0_platform.ps.fac_cal /data/config/stk3bcx_0_platform.ps.fac_cal
+    copy /mnt/vendor/persist/sensors/registry/registry/stk3bcx_0_platform.als.fac_cal /data/config/stk3bcx_0_platform.als.fac_cal
+    
+    chmod 0444 /data/config/stk3bcx_0_platform.ps.fac_cal
+    chmod 0444 /data/config/stk3bcx_0_platform.als.fac_cal
+
+#zhangshaopei add for A+G sensor calibration
+on property:sys.ssc_drva_test.accel=copy
+   copy /mnt/vendor/persist/sensors/registry/registry/icm4x6xx_0_platform.accel.fac_cal.bias data/config/icm4x6xx_0_platform.accel.fac_cal.bias
+   copy /mnt/vendor/persist/sensors/registry/registry/lsm6dso_0_platform.accel.fac_cal.bias data/config/lsm6dso_0_platform.accel.fac_cal.bias
+   chown system system data/config/icm4x6xx_0_platform.accel.fac_cal.bias
+   chown system system data/config/lsm6dso_0_platform.accel.fac_cal.bias
+   chmod 0444 data/config/icm4x6xx_0_platform.accel.fac_cal.bias
+   chmod 0444 data/config/lsm6dso_0_platform.accel.fac_cal.bias
+
+on property:sys.ssc_drva_test.gyro=copy
+   copy /mnt/vendor/persist/sensors/registry/registry/icm4x6xx_0_platform.gyro.fac_cal.bias data/config/icm4x6xx_0_platform.gyro.fac_cal.bias
+   copy /mnt/vendor/persist/sensors/registry/registry/lsm6dso_0_platform.gyro.fac_cal.bias data/config/lsm6dso_0_platform.gyro.fac_cal.bias
+   chown system system data/config/icm4x6xx_0_platform.gyro.fac_cal.bias
+   chown system system data/config/lsm6dso_0_platform.gyro.fac_cal.bias
+   chmod 0444 data/config/icm4x6xx_0_platform.gyro.fac_cal.bias
+   chmod 0444 data/config/lsm6dso_0_platform.gyro.fac_cal.bias
+
+# nick add for cit Touch panel version && Tp apk
+on property:sys.boot_completed=1
+    chmod 0666 /dev/gtp_tools
+    restorecon /sys/devices/platform/goodix_ts.0/driver_info
+    restorecon /sys/devices/platform/goodix_ts.0/fw_bin_info
+
+# add by wqj for cit pd/otg
+on property:persist.sys.cit.restorecon=1
+    restorecon /sys/class/qcom-battery/typec_cc_orientation
+    restorecon /sys/class/qcom-battery/charge_pump_enable
+    restorecon /sys/class/qcom-battery/usb_real_type
+    restorecon /sys/class/qcom-battery/wireless_boost_en
+    restorecon /sys/class/qcom-battery/wls_reverse_status
+    restorecon /sys/class/qcom-battery/wls_curr_tx
+    restorecon /sys/class/qcom-battery/wls_volt_tx
+    restorecon /sys/class/qcom-battery/wireless_fw_version
+    restorecon /sys/class/qcom-battery/wls_st38_data
+    restorecon /sys/class/qcom-battery/wls_st38_reg
+# add by zyq for cit panelID
+    restorecon /sys/panel_feature/panel_id1
+    restorecon /sys/panel_feature/panel_id2 
+    restorecon /sys/panel_feature/panel_id3
+
+# xyf add for runin PA Test
+on property:persist.sys.runin.refreshdaemon=1
+    stop vendor.qcrild
+    stop vendor.qcrild2
+    start vendor.qcrild
+    start vendor.qcrild2
+    setprop persist.sys.runin.refreshdaemon ""

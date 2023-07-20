@@ -1,0 +1,11 @@
+vendor/etc/camera/facesr.sensetime.model
+vendor/etc/license.lic
+system_ext/apex/com.android.vndk.v30.apex
+bootRE/boot.elf
+product/app/Photos/Photos.apk
+product/app/WebViewGoogle/WebViewGoogle.apk
+product/priv-app/Velvet/Velvet.apk
+product/priv-app/Messages/Messages.apk
+product/priv-app/GmsCore/GmsCore.apk
+modem.img
+recovery.img
