@@ -1,0 +1,7 @@
+# add by cy for cit colorID
+on property:sys.cit.color=*
+    chmod 0444 /data/config/color
+    copy /data/config/color /mnt/vendor/persist/color
+    chown 0644 /mnt/vendor/persist/color
+    chown system system /mnt/vendor/persist/color
+    chmod 0666 /data/config/color

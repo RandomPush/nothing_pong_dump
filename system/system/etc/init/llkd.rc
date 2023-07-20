@@ -1,0 +1,35 @@
+# eng default for ro.llk.enable and ro.khungtask.enable
+on property:ro.debuggable=*
+    setprop llk.enable ${ro.llk.enable:-0}
+    setprop khungtask.enable ${ro.khungtask.enable:-0}
+
+on property:ro.llk.enable=true
+    setprop llk.enable true
+
+on property:llk.enable=1
+    setprop llk.enable true
+
+on property:llk.enable=0
+    setprop llk.enable false
+
+on property:ro.khungtask.enable=true
+    setprop khungtask.enable true
+
+on property:khungtask.enable=1
+    setprop khungtask.enable true
+
+on property:khungtask.enable=0
+    setprop khungtask.enable false
+
+on property:llk.enable=true
+    start llkd-${ro.debuggable:-0}
+
+service llkd-0 /system/bin/llkd
+    class late_start
+    disabled
+    user llkd
+    group llkd readproc
+    capabilities KILL IPC_LOCK
+    file /dev/kmsg w
+    file /proc/sysrq-trigger w
+    task_profiles ServiceCapacityLow
